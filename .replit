@@ -1,0 +1,51 @@
+modules = ["c"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Book Management App"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "run_book_management"
+
+[[workflows.workflow]]
+name = "Book Management App"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gcc book_management.c -o book_management && ./book_management"
+
+[[workflows.workflow]]
+name = "run_book_management"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gcc book_management.c -o book_management && ./book_management"
+
+[deployment]
+run = ["sh", "-c", "gcc book_management.c -o book_management && ./book_management"]
