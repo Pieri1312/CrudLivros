@@ -1,15 +1,15 @@
 /**
- * Book Management System - CRUD application in C
+ * Sistema de Gerenciamento de Livros - Aplicativo CRUD em C
  * 
- * This program implements a console-based book management system with CRUD operations.
- * Features include:
- * - Adding new books
- * - Listing all books
- * - Searching for books
- * - Updating book information
- * - Deleting books
- * - Sorting books by various criteria
- * - Binary search for efficient lookups
+ * Este programa implementa um sistema de gerenciamento de livros baseado em console com operações CRUD.
+ * Funcionalidades incluem:
+ * - Adicionar novos livros
+ * - Listar todos os livros
+ * - Pesquisar livros
+ * - Atualizar informações de livros
+ * - Excluir livros
+ * - Ordenar livros por diferentes critérios
+ * - Busca binária para pesquisas eficientes
  */
 
 #include <stdio.h>
@@ -17,584 +17,584 @@
 #include <string.h>
 #include <ctype.h>
 
-#define MAX_BOOKS 100
-#define MAX_TITLE_LENGTH 100
-#define MAX_AUTHOR_LENGTH 100
-#define MAX_ISBN_LENGTH 20
-#define MAX_INPUT_LENGTH 100
+#define MAX_LIVROS 100
+#define MAX_TITULO 50
+#define MAX_AUTOR 50
+#define MAX_EDITORA 30
+#define MAX_ENTRADA 100
 
-// Structure to represent a book
+// Estrutura para representar um livro
 typedef struct {
-    int id;                         // Unique identifier for the book
-    char title[MAX_TITLE_LENGTH];   // Book title
-    char author[MAX_AUTHOR_LENGTH]; // Book author
-    char isbn[MAX_ISBN_LENGTH];     // ISBN number
-    int year;                       // Publication year
-    float price;                    // Book price
-    int available;                  // Flag to indicate if the book is currently available (1) or not (0)
-} Book;
+    int id;                       // Identificador único para o livro
+    char titulo[MAX_TITULO];      // Título do livro
+    char autor[MAX_AUTOR];        // Autor do livro
+    char editora[MAX_EDITORA];    // Editora do livro
+    int ano;                      // Ano de publicação
+    float preco;                  // Preço do livro
+    int disponivel;               // Indica se o livro está disponível (1) ou não (0)
+} Livro;
 
-// Global variables
-Book library[MAX_BOOKS];  // Array to store books
-int bookCount = 0;        // Current number of books in the library
-int nextId = 1;           // ID to assign to the next book
+// Variáveis globais
+Livro biblioteca[MAX_LIVROS];  // Vetor para armazenar livros
+int qtdLivros = 0;             // Quantidade atual de livros na biblioteca
+int proximoId = 1;             // ID a ser atribuído ao próximo livro
 
-// Function declarations
-void clearInputBuffer();
-void waitForEnter();
-void displayMenu();
-void addBook();
-void listAllBooks();
-void searchBookById();
-void searchBookByTitle();
-void updateBook();
-void deleteBook();
-void sortBooks();
-int binarySearchById(int id, int start, int end);
-int binarySearchByTitle(const char* title, int start, int end);
-void swapBooks(int i, int j);
-void bubbleSortById();
-void bubbleSortByTitle();
-void bubbleSortByAuthor();
-void bubbleSortByYear();
-int validateInput();
-int getIntInput(const char* prompt);
-float getFloatInput(const char* prompt);
-void getStringInput(const char* prompt, char* buffer, int maxLength);
-int searchBookIndexById(int id);
-int searchBookIndexByTitle(const char* title);
-void displayBook(const Book* book);
+// Declarações de funções
+void limparBuffer();
+void esperarEnter();
+void exibirMenu();
+void adicionarLivro();
+void listarLivros();
+void buscarLivroPorId();
+void buscarLivroPorTitulo();
+void atualizarLivro();
+void excluirLivro();
+void ordenarLivros();
+int buscaBinariaPorId(int id, int inicio, int fim);
+int buscaBinariaPorTitulo(const char* titulo, int inicio, int fim);
+void trocarLivros(int i, int j);
+void ordenarPorId();
+void ordenarPorTitulo();
+void ordenarPorAutor();
+void ordenarPorAno();
+int obterInteiro(const char* mensagem);
+float obterDecimal(const char* mensagem);
+void obterTexto(const char* mensagem, char* buffer, int tamanhoMax);
+int buscarIndiceLivroPorId(int id);
+int buscarIndiceLivroPorTitulo(const char* titulo);
+void exibirLivro(const Livro* livro);
 
 int main() {
-    int choice;
+    int opcao;
     
-    printf("===================================\n");
-    printf("  BOOK MANAGEMENT SYSTEM\n");
-    printf("===================================\n");
-    printf("Welcome to the Book Management System!\n\n");
+    printf("╔═════════════════════════════════════╗\n");
+    printf("║  SISTEMA DE GERENCIAMENTO DE LIVROS ║\n");
+    printf("╚═════════════════════════════════════╝\n");
+    printf("Bem-vindo ao Sistema de Gerenciamento de Livros!\n\n");
     
     do {
-        displayMenu();
-        printf("Enter your choice: ");
-        if (scanf("%d", &choice) != 1) {
-            printf("Invalid input. Please enter a number.\n");
-            clearInputBuffer();
+        exibirMenu();
+        printf("Digite sua opção: ");
+        if (scanf("%d", &opcao) != 1) {
+            printf("Entrada inválida. Por favor, digite um número.\n");
+            limparBuffer();
             continue;
         }
-        clearInputBuffer();
+        limparBuffer();
         
-        switch (choice) {
+        switch (opcao) {
             case 1:
-                addBook();
+                adicionarLivro();
                 break;
             case 2:
-                listAllBooks();
+                listarLivros();
                 break;
             case 3:
-                searchBookById();
+                buscarLivroPorId();
                 break;
             case 4:
-                searchBookByTitle();
+                buscarLivroPorTitulo();
                 break;
             case 5:
-                updateBook();
+                atualizarLivro();
                 break;
             case 6:
-                deleteBook();
+                excluirLivro();
                 break;
             case 7:
-                sortBooks();
+                ordenarLivros();
                 break;
             case 0:
-                printf("Thank you for using Book Management System. Goodbye!\n");
+                printf("Obrigado por usar o Sistema de Gerenciamento de Livros. Até logo!\n");
                 break;
             default:
-                printf("Invalid choice. Please try again.\n");
+                printf("Opção inválida. Por favor, tente novamente.\n");
         }
         
-        if (choice != 0) {
-            waitForEnter();
+        if (opcao != 0) {
+            esperarEnter();
         }
         
-    } while (choice != 0);
+    } while (opcao != 0);
     
     return 0;
 }
 
-// Function to clear input buffer
-void clearInputBuffer() {
+// Função para limpar o buffer de entrada
+void limparBuffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// Function to wait for Enter key
-void waitForEnter() {
-    printf("\nPress Enter to continue...");
+// Função para esperar o usuário pressionar Enter
+void esperarEnter() {
+    printf("\nPressione Enter para continuar...");
     getchar();
 }
 
-// Function to display the main menu
-void displayMenu() {
-    printf("\n===== MENU =====\n");
-    printf("1. Add a new book\n");
-    printf("2. List all books\n");
-    printf("3. Search a book by ID\n");
-    printf("4. Search a book by title\n");
-    printf("5. Update a book\n");
-    printf("6. Delete a book\n");
-    printf("7. Sort books\n");
-    printf("0. Exit\n");
+// Função para exibir o menu principal
+void exibirMenu() {
+    printf("\n╔═══════════════ MENU ═══════════════╗\n");
+    printf("║  1. Adicionar um novo livro        ║\n");
+    printf("║  2. Listar todos os livros         ║\n");
+    printf("║  3. Buscar livro por ID            ║\n");
+    printf("║  4. Buscar livro por título        ║\n");
+    printf("║  5. Atualizar um livro             ║\n");
+    printf("║  6. Excluir um livro               ║\n");
+    printf("║  7. Ordenar livros                 ║\n");
+    printf("║  0. Sair                           ║\n");
+    printf("╚═══════════════════════════════════╝\n");
 }
 
-// Function to add a new book
-void addBook() {
-    if (bookCount >= MAX_BOOKS) {
-        printf("Error: Library is full. Cannot add more books.\n");
+// Função para adicionar um novo livro
+void adicionarLivro() {
+    if (qtdLivros >= MAX_LIVROS) {
+        printf("Erro: Biblioteca cheia. Não é possível adicionar mais livros.\n");
         return;
     }
     
-    printf("\n===== ADD A NEW BOOK =====\n");
+    printf("\n╔═══════ ADICIONAR NOVO LIVRO ════════╗\n");
     
-    Book newBook;
-    newBook.id = nextId++;
+    Livro novoLivro;
+    novoLivro.id = proximoId++;
     
-    getStringInput("Enter title", newBook.title, MAX_TITLE_LENGTH);
-    getStringInput("Enter author", newBook.author, MAX_AUTHOR_LENGTH);
-    getStringInput("Enter ISBN", newBook.isbn, MAX_ISBN_LENGTH);
+    obterTexto("Digite o título", novoLivro.titulo, MAX_TITULO);
+    obterTexto("Digite o autor", novoLivro.autor, MAX_AUTOR);
+    obterTexto("Digite a editora", novoLivro.editora, MAX_EDITORA);
     
-    newBook.year = getIntInput("Enter publication year");
-    newBook.price = getFloatInput("Enter price");
-    newBook.available = 1;  // New book is available by default
+    novoLivro.ano = obterInteiro("Digite o ano de publicação");
+    novoLivro.preco = obterDecimal("Digite o preço");
+    novoLivro.disponivel = 1;  // Novo livro está disponível por padrão
     
-    library[bookCount++] = newBook;
+    biblioteca[qtdLivros++] = novoLivro;
     
-    printf("\nBook added successfully with ID: %d\n", newBook.id);
+    printf("\nLivro adicionado com sucesso! ID: %d\n", novoLivro.id);
 }
 
-// Function to list all books
-void listAllBooks() {
-    printf("\n===== ALL BOOKS =====\n");
+// Função para listar todos os livros
+void listarLivros() {
+    printf("\n╔═══════ TODOS OS LIVROS ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    printf("Total books: %d\n\n", bookCount);
-    printf("%-5s %-30s %-25s %-15s %-6s %-10s %-10s\n", 
-           "ID", "Title", "Author", "ISBN", "Year", "Price", "Available");
-    printf("--------------------------------------------------------------------------------------------------------\n");
+    printf("Total de livros: %d\n\n", qtdLivros);
+    printf("%-5s %-25s %-20s %-15s %-6s %-10s %-10s\n", 
+           "ID", "Título", "Autor", "Editora", "Ano", "Preço", "Disponível");
+    printf("--------------------------------------------------------------------------------------------\n");
     
-    for (int i = 0; i < bookCount; i++) {
-        Book book = library[i];
-        printf("%-5d %-30s %-25s %-15s %-6d $%-9.2f %s\n", 
-               book.id, book.title, book.author, book.isbn, book.year, book.price, 
-               (book.available ? "Yes" : "No"));
+    for (int i = 0; i < qtdLivros; i++) {
+        Livro livro = biblioteca[i];
+        printf("%-5d %-25s %-20s %-15s %-6d R$%-8.2f %s\n", 
+               livro.id, livro.titulo, livro.autor, livro.editora, livro.ano, livro.preco, 
+               (livro.disponivel ? "Sim" : "Não"));
     }
 }
 
-// Function to search a book by ID (using binary search)
-void searchBookById() {
-    printf("\n===== SEARCH BOOK BY ID =====\n");
+// Função para buscar um livro por ID (usando busca binária)
+void buscarLivroPorId() {
+    printf("\n╔═══════ BUSCAR LIVRO POR ID ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    int id = getIntInput("Enter book ID to search");
+    int id = obterInteiro("Digite o ID do livro para buscar");
     
-    // Sort books by ID before binary search
-    bubbleSortById();
+    // Ordena livros por ID antes da busca binária
+    ordenarPorId();
     
-    int index = binarySearchById(id, 0, bookCount - 1);
+    int indice = buscaBinariaPorId(id, 0, qtdLivros - 1);
     
-    if (index != -1) {
-        printf("\nBook found:\n");
-        displayBook(&library[index]);
+    if (indice != -1) {
+        printf("\nLivro encontrado:\n");
+        exibirLivro(&biblioteca[indice]);
     } else {
-        printf("\nBook with ID %d not found.\n", id);
+        printf("\nLivro com ID %d não encontrado.\n", id);
     }
 }
 
-// Function to search a book by title
-void searchBookByTitle() {
-    printf("\n===== SEARCH BOOK BY TITLE =====\n");
+// Função para buscar um livro por título
+void buscarLivroPorTitulo() {
+    printf("\n╔═══════ BUSCAR LIVRO POR TÍTULO ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    char title[MAX_TITLE_LENGTH];
-    getStringInput("Enter book title to search", title, MAX_TITLE_LENGTH);
+    char titulo[MAX_TITULO];
+    obterTexto("Digite o título do livro para buscar", titulo, MAX_TITULO);
     
-    // Sort books by title before binary search
-    bubbleSortByTitle();
+    // Ordena livros por título antes da busca binária
+    ordenarPorTitulo();
     
-    int index = binarySearchByTitle(title, 0, bookCount - 1);
+    int indice = buscaBinariaPorTitulo(titulo, 0, qtdLivros - 1);
     
-    if (index != -1) {
-        printf("\nBook found:\n");
-        displayBook(&library[index]);
+    if (indice != -1) {
+        printf("\nLivro encontrado:\n");
+        exibirLivro(&biblioteca[indice]);
     } else {
-        printf("\nBook with title '%s' not found.\n", title);
+        printf("\nLivro com título '%s' não encontrado.\n", titulo);
     }
 }
 
-// Function to update a book
-void updateBook() {
-    printf("\n===== UPDATE BOOK =====\n");
+// Função para atualizar um livro
+void atualizarLivro() {
+    printf("\n╔═══════ ATUALIZAR LIVRO ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    int id = getIntInput("Enter book ID to update");
+    int id = obterInteiro("Digite o ID do livro para atualizar");
     
-    int index = searchBookIndexById(id);
+    int indice = buscarIndiceLivroPorId(id);
     
-    if (index == -1) {
-        printf("\nBook with ID %d not found.\n", id);
+    if (indice == -1) {
+        printf("\nLivro com ID %d não encontrado.\n", id);
         return;
     }
     
-    printf("\nCurrent book details:\n");
-    displayBook(&library[index]);
+    printf("\nDetalhes atuais do livro:\n");
+    exibirLivro(&biblioteca[indice]);
     
-    printf("\nEnter new details (leave blank to keep current value):\n");
+    printf("\nDigite novos detalhes (deixe em branco para manter o valor atual):\n");
     
-    char input[MAX_INPUT_LENGTH];
+    char entrada[MAX_ENTRADA];
     
-    getStringInput("Enter new title", input, MAX_TITLE_LENGTH);
-    if (input[0] != '\0') {
-        strcpy(library[index].title, input);
+    obterTexto("Digite novo título", entrada, MAX_TITULO);
+    if (entrada[0] != '\0') {
+        strcpy(biblioteca[indice].titulo, entrada);
     }
     
-    getStringInput("Enter new author", input, MAX_AUTHOR_LENGTH);
-    if (input[0] != '\0') {
-        strcpy(library[index].author, input);
+    obterTexto("Digite novo autor", entrada, MAX_AUTOR);
+    if (entrada[0] != '\0') {
+        strcpy(biblioteca[indice].autor, entrada);
     }
     
-    getStringInput("Enter new ISBN", input, MAX_ISBN_LENGTH);
-    if (input[0] != '\0') {
-        strcpy(library[index].isbn, input);
+    obterTexto("Digite nova editora", entrada, MAX_EDITORA);
+    if (entrada[0] != '\0') {
+        strcpy(biblioteca[indice].editora, entrada);
     }
     
-    printf("Enter new publication year (current: %d, leave blank to keep): ", library[index].year);
-    fgets(input, MAX_INPUT_LENGTH, stdin);
-    if (input[0] != '\n') {
-        int year = atoi(input);
-        if (year > 0) {
-            library[index].year = year;
+    printf("Digite novo ano de publicação (atual: %d, deixe em branco para manter): ", biblioteca[indice].ano);
+    fgets(entrada, MAX_ENTRADA, stdin);
+    if (entrada[0] != '\n') {
+        int ano = atoi(entrada);
+        if (ano > 0) {
+            biblioteca[indice].ano = ano;
         }
     }
     
-    printf("Enter new price (current: %.2f, leave blank to keep): ", library[index].price);
-    fgets(input, MAX_INPUT_LENGTH, stdin);
-    if (input[0] != '\n') {
-        float price = atof(input);
-        if (price >= 0) {
-            library[index].price = price;
+    printf("Digite novo preço (atual: %.2f, deixe em branco para manter): ", biblioteca[indice].preco);
+    fgets(entrada, MAX_ENTRADA, stdin);
+    if (entrada[0] != '\n') {
+        float preco = atof(entrada);
+        if (preco >= 0) {
+            biblioteca[indice].preco = preco;
         }
     }
     
-    printf("Is the book available? (1 for yes, 0 for no, current: %d, leave blank to keep): ", 
-           library[index].available);
-    fgets(input, MAX_INPUT_LENGTH, stdin);
-    if (input[0] != '\n') {
-        int available = atoi(input);
-        if (available == 0 || available == 1) {
-            library[index].available = available;
+    printf("O livro está disponível? (1 para sim, 0 para não, atual: %d, deixe em branco para manter): ", 
+           biblioteca[indice].disponivel);
+    fgets(entrada, MAX_ENTRADA, stdin);
+    if (entrada[0] != '\n') {
+        int disponivel = atoi(entrada);
+        if (disponivel == 0 || disponivel == 1) {
+            biblioteca[indice].disponivel = disponivel;
         }
     }
     
-    printf("\nBook updated successfully.\n");
+    printf("\nLivro atualizado com sucesso!\n");
 }
 
-// Function to delete a book
-void deleteBook() {
-    printf("\n===== DELETE BOOK =====\n");
+// Função para excluir um livro
+void excluirLivro() {
+    printf("\n╔═══════ EXCLUIR LIVRO ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    int id = getIntInput("Enter book ID to delete");
+    int id = obterInteiro("Digite o ID do livro para excluir");
     
-    int index = searchBookIndexById(id);
+    int indice = buscarIndiceLivroPorId(id);
     
-    if (index == -1) {
-        printf("\nBook with ID %d not found.\n", id);
+    if (indice == -1) {
+        printf("\nLivro com ID %d não encontrado.\n", id);
         return;
     }
     
-    printf("\nBook to delete:\n");
-    displayBook(&library[index]);
+    printf("\nLivro a ser excluído:\n");
+    exibirLivro(&biblioteca[indice]);
     
-    char confirmation;
-    printf("\nAre you sure you want to delete this book? (y/n): ");
-    scanf("%c", &confirmation);
-    clearInputBuffer();
+    char confirmacao;
+    printf("\nTem certeza que deseja excluir este livro? (s/n): ");
+    scanf("%c", &confirmacao);
+    limparBuffer();
     
-    if (tolower(confirmation) == 'y') {
-        // Shift all elements after the deleted book one position back
-        for (int i = index; i < bookCount - 1; i++) {
-            library[i] = library[i + 1];
+    if (tolower(confirmacao) == 's') {
+        // Move todos os elementos após o livro excluído uma posição para trás
+        for (int i = indice; i < qtdLivros - 1; i++) {
+            biblioteca[i] = biblioteca[i + 1];
         }
-        bookCount--;
-        printf("\nBook deleted successfully.\n");
+        qtdLivros--;
+        printf("\nLivro excluído com sucesso!\n");
     } else {
-        printf("\nDeletion cancelled.\n");
+        printf("\nExclusão cancelada.\n");
     }
 }
 
-// Function to display a book
-void displayBook(const Book* book) {
-    printf("ID: %d\n", book->id);
-    printf("Title: %s\n", book->title);
-    printf("Author: %s\n", book->author);
-    printf("ISBN: %s\n", book->isbn);
-    printf("Publication Year: %d\n", book->year);
-    printf("Price: $%.2f\n", book->price);
-    printf("Available: %s\n", (book->available ? "Yes" : "No"));
+// Função para exibir um livro
+void exibirLivro(const Livro* livro) {
+    printf("ID: %d\n", livro->id);
+    printf("Título: %s\n", livro->titulo);
+    printf("Autor: %s\n", livro->autor);
+    printf("Editora: %s\n", livro->editora);
+    printf("Ano de publicação: %d\n", livro->ano);
+    printf("Preço: R$%.2f\n", livro->preco);
+    printf("Disponível: %s\n", (livro->disponivel ? "Sim" : "Não"));
 }
 
-// Function to swap two books in the array
-void swapBooks(int i, int j) {
-    Book temp = library[i];
-    library[i] = library[j];
-    library[j] = temp;
+// Função para trocar dois livros no array
+void trocarLivros(int i, int j) {
+    Livro temp = biblioteca[i];
+    biblioteca[i] = biblioteca[j];
+    biblioteca[j] = temp;
 }
 
-// Function to sort books by ID using bubble sort
-void bubbleSortById() {
-    for (int i = 0; i < bookCount - 1; i++) {
-        for (int j = 0; j < bookCount - i - 1; j++) {
-            if (library[j].id > library[j + 1].id) {
-                swapBooks(j, j + 1);
+// Função para ordenar livros por ID usando o método bolha
+void ordenarPorId() {
+    for (int i = 0; i < qtdLivros - 1; i++) {
+        for (int j = 0; j < qtdLivros - i - 1; j++) {
+            if (biblioteca[j].id > biblioteca[j + 1].id) {
+                trocarLivros(j, j + 1);
             }
         }
     }
 }
 
-// Function to sort books by title using bubble sort
-void bubbleSortByTitle() {
-    for (int i = 0; i < bookCount - 1; i++) {
-        for (int j = 0; j < bookCount - i - 1; j++) {
-            if (strcmp(library[j].title, library[j + 1].title) > 0) {
-                swapBooks(j, j + 1);
+// Função para ordenar livros por título usando o método bolha
+void ordenarPorTitulo() {
+    for (int i = 0; i < qtdLivros - 1; i++) {
+        for (int j = 0; j < qtdLivros - i - 1; j++) {
+            if (strcmp(biblioteca[j].titulo, biblioteca[j + 1].titulo) > 0) {
+                trocarLivros(j, j + 1);
             }
         }
     }
 }
 
-// Function to sort books by author using bubble sort
-void bubbleSortByAuthor() {
-    for (int i = 0; i < bookCount - 1; i++) {
-        for (int j = 0; j < bookCount - i - 1; j++) {
-            if (strcmp(library[j].author, library[j + 1].author) > 0) {
-                swapBooks(j, j + 1);
+// Função para ordenar livros por autor usando o método bolha
+void ordenarPorAutor() {
+    for (int i = 0; i < qtdLivros - 1; i++) {
+        for (int j = 0; j < qtdLivros - i - 1; j++) {
+            if (strcmp(biblioteca[j].autor, biblioteca[j + 1].autor) > 0) {
+                trocarLivros(j, j + 1);
             }
         }
     }
 }
 
-// Function to sort books by year using bubble sort
-void bubbleSortByYear() {
-    for (int i = 0; i < bookCount - 1; i++) {
-        for (int j = 0; j < bookCount - i - 1; j++) {
-            if (library[j].year > library[j + 1].year) {
-                swapBooks(j, j + 1);
+// Função para ordenar livros por ano usando o método bolha
+void ordenarPorAno() {
+    for (int i = 0; i < qtdLivros - 1; i++) {
+        for (int j = 0; j < qtdLivros - i - 1; j++) {
+            if (biblioteca[j].ano > biblioteca[j + 1].ano) {
+                trocarLivros(j, j + 1);
             }
         }
     }
 }
 
-// Function to sort books menu
-void sortBooks() {
-    printf("\n===== SORT BOOKS =====\n");
+// Função para menu de ordenação de livros
+void ordenarLivros() {
+    printf("\n╔═══════ ORDENAR LIVROS ════════╗\n");
     
-    if (bookCount == 0) {
-        printf("No books in the library.\n");
+    if (qtdLivros == 0) {
+        printf("Não há livros na biblioteca.\n");
         return;
     }
     
-    printf("Sort by:\n");
+    printf("Ordenar por:\n");
     printf("1. ID\n");
-    printf("2. Title\n");
-    printf("3. Author\n");
-    printf("4. Publication Year\n");
+    printf("2. Título\n");
+    printf("3. Autor\n");
+    printf("4. Ano de publicação\n");
     
-    int choice = getIntInput("Enter your choice");
+    int opcao = obterInteiro("Digite sua opção");
     
-    switch (choice) {
+    switch (opcao) {
         case 1:
-            bubbleSortById();
-            printf("\nBooks sorted by ID.\n");
+            ordenarPorId();
+            printf("\nLivros ordenados por ID.\n");
             break;
         case 2:
-            bubbleSortByTitle();
-            printf("\nBooks sorted by title.\n");
+            ordenarPorTitulo();
+            printf("\nLivros ordenados por título.\n");
             break;
         case 3:
-            bubbleSortByAuthor();
-            printf("\nBooks sorted by author.\n");
+            ordenarPorAutor();
+            printf("\nLivros ordenados por autor.\n");
             break;
         case 4:
-            bubbleSortByYear();
-            printf("\nBooks sorted by publication year.\n");
+            ordenarPorAno();
+            printf("\nLivros ordenados por ano de publicação.\n");
             break;
         default:
-            printf("\nInvalid choice. Books not sorted.\n");
+            printf("\nOpção inválida. Livros não ordenados.\n");
             return;
     }
     
-    listAllBooks();
+    listarLivros();
 }
 
-// Function to perform binary search by ID
-int binarySearchById(int id, int start, int end) {
-    if (start > end) {
-        return -1;  // Not found
+// Função para realizar busca binária por ID
+int buscaBinariaPorId(int id, int inicio, int fim) {
+    if (inicio > fim) {
+        return -1;  // Não encontrado
     }
     
-    int mid = start + (end - start) / 2;
+    int meio = inicio + (fim - inicio) / 2;
     
-    if (library[mid].id == id) {
-        return mid;  // Found at index mid
+    if (biblioteca[meio].id == id) {
+        return meio;  // Encontrado no índice meio
     }
     
-    if (library[mid].id > id) {
-        return binarySearchById(id, start, mid - 1);  // Search in left half
+    if (biblioteca[meio].id > id) {
+        return buscaBinariaPorId(id, inicio, meio - 1);  // Busca na metade esquerda
     } else {
-        return binarySearchById(id, mid + 1, end);  // Search in right half
+        return buscaBinariaPorId(id, meio + 1, fim);  // Busca na metade direita
     }
 }
 
-// Function to perform binary search by title
-int binarySearchByTitle(const char* title, int start, int end) {
-    if (start > end) {
-        return -1;  // Not found
+// Função para realizar busca binária por título
+int buscaBinariaPorTitulo(const char* titulo, int inicio, int fim) {
+    if (inicio > fim) {
+        return -1;  // Não encontrado
     }
     
-    int mid = start + (end - start) / 2;
+    int meio = inicio + (fim - inicio) / 2;
     
-    int comparison = strcmp(library[mid].title, title);
+    int comparacao = strcmp(biblioteca[meio].titulo, titulo);
     
-    if (comparison == 0) {
-        return mid;  // Found at index mid
+    if (comparacao == 0) {
+        return meio;  // Encontrado no índice meio
     }
     
-    if (comparison > 0) {
-        return binarySearchByTitle(title, start, mid - 1);  // Search in left half
+    if (comparacao > 0) {
+        return buscaBinariaPorTitulo(titulo, inicio, meio - 1);  // Busca na metade esquerda
     } else {
-        return binarySearchByTitle(title, mid + 1, end);  // Search in right half
+        return buscaBinariaPorTitulo(titulo, meio + 1, fim);  // Busca na metade direita
     }
 }
 
-// Function to search a book by ID using sequential search
-int searchBookIndexById(int id) {
-    for (int i = 0; i < bookCount; i++) {
-        if (library[i].id == id) {
+// Função para buscar um livro por ID usando busca sequencial
+int buscarIndiceLivroPorId(int id) {
+    for (int i = 0; i < qtdLivros; i++) {
+        if (biblioteca[i].id == id) {
             return i;
         }
     }
-    return -1;  // Not found
+    return -1;  // Não encontrado
 }
 
-// Function to search a book by title using sequential search
-int searchBookIndexByTitle(const char* title) {
-    for (int i = 0; i < bookCount; i++) {
-        if (strcmp(library[i].title, title) == 0) {
+// Função para buscar um livro por título usando busca sequencial
+int buscarIndiceLivroPorTitulo(const char* titulo) {
+    for (int i = 0; i < qtdLivros; i++) {
+        if (strcmp(biblioteca[i].titulo, titulo) == 0) {
             return i;
         }
     }
-    return -1;  // Not found
+    return -1;  // Não encontrado
 }
 
-// Function to get integer input with validation
-int getIntInput(const char* prompt) {
-    char input[MAX_INPUT_LENGTH];
-    int value;
+// Função para obter entrada de número inteiro com validação
+int obterInteiro(const char* mensagem) {
+    char entrada[MAX_ENTRADA];
+    int valor;
     
     while (1) {
-        printf("%s: ", prompt);
-        fgets(input, MAX_INPUT_LENGTH, stdin);
+        printf("%s: ", mensagem);
+        fgets(entrada, MAX_ENTRADA, stdin);
         
-        // Remove newline character
-        input[strcspn(input, "\n")] = '\0';
+        // Remove o caractere de nova linha
+        entrada[strcspn(entrada, "\n")] = '\0';
         
-        // Check if input is empty
-        if (input[0] == '\0') {
-            printf("Error: Input cannot be empty. Please try again.\n");
+        // Verifica se a entrada está vazia
+        if (entrada[0] == '\0') {
+            printf("Erro: A entrada não pode estar vazia. Por favor, tente novamente.\n");
             continue;
         }
         
-        // Check if input is a valid integer
-        char* endptr;
-        value = strtol(input, &endptr, 10);
+        // Verifica se a entrada é um número inteiro válido
+        char* fimPtr;
+        valor = strtol(entrada, &fimPtr, 10);
         
-        if (*endptr != '\0') {
-            printf("Error: Invalid input. Please enter a number.\n");
+        if (*fimPtr != '\0') {
+            printf("Erro: Entrada inválida. Por favor, digite um número.\n");
             continue;
         }
         
         break;
     }
     
-    return value;
+    return valor;
 }
 
-// Function to get float input with validation
-float getFloatInput(const char* prompt) {
-    char input[MAX_INPUT_LENGTH];
-    float value;
+// Função para obter entrada de número decimal com validação
+float obterDecimal(const char* mensagem) {
+    char entrada[MAX_ENTRADA];
+    float valor;
     
     while (1) {
-        printf("%s: ", prompt);
-        fgets(input, MAX_INPUT_LENGTH, stdin);
+        printf("%s: ", mensagem);
+        fgets(entrada, MAX_ENTRADA, stdin);
         
-        // Remove newline character
-        input[strcspn(input, "\n")] = '\0';
+        // Remove o caractere de nova linha
+        entrada[strcspn(entrada, "\n")] = '\0';
         
-        // Check if input is empty
-        if (input[0] == '\0') {
-            printf("Error: Input cannot be empty. Please try again.\n");
+        // Verifica se a entrada está vazia
+        if (entrada[0] == '\0') {
+            printf("Erro: A entrada não pode estar vazia. Por favor, tente novamente.\n");
             continue;
         }
         
-        // Check if input is a valid float
-        char* endptr;
-        value = strtof(input, &endptr);
+        // Verifica se a entrada é um número decimal válido
+        char* fimPtr;
+        valor = strtof(entrada, &fimPtr);
         
-        if (*endptr != '\0') {
-            printf("Error: Invalid input. Please enter a number.\n");
+        if (*fimPtr != '\0') {
+            printf("Erro: Entrada inválida. Por favor, digite um número.\n");
             continue;
         }
         
         break;
     }
     
-    return value;
+    return valor;
 }
 
-// Function to get string input with validation
-void getStringInput(const char* prompt, char* buffer, int maxLength) {
+// Função para obter entrada de texto com validação
+void obterTexto(const char* mensagem, char* buffer, int tamanhoMax) {
     while (1) {
-        printf("%s: ", prompt);
-        fgets(buffer, maxLength, stdin);
+        printf("%s: ", mensagem);
+        fgets(buffer, tamanhoMax, stdin);
         
-        // Remove newline character
+        // Remove o caractere de nova linha
         buffer[strcspn(buffer, "\n")] = '\0';
         
-        // Check if input is empty (allow empty for update operation)
-        if (buffer[0] == '\0' && strcmp(prompt, "Enter new title") != 0 && 
-            strcmp(prompt, "Enter new author") != 0 && 
-            strcmp(prompt, "Enter new ISBN") != 0) {
-            printf("Error: Input cannot be empty. Please try again.\n");
+        // Verifica se a entrada está vazia (permite vazio para operação de atualização)
+        if (buffer[0] == '\0' && strcmp(mensagem, "Digite novo título") != 0 && 
+            strcmp(mensagem, "Digite novo autor") != 0 && 
+            strcmp(mensagem, "Digite nova editora") != 0) {
+            printf("Erro: A entrada não pode estar vazia. Por favor, tente novamente.\n");
             continue;
         }
         
